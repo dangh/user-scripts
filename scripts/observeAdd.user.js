@@ -9,9 +9,10 @@
 unsafeWindow.observeAdd = function observeAdd(selector, handle, opts) {
   let container = opts?.container ?? document;
   let runImmediately = opts?.runImmediately ?? true;
+  let batching = opts?.batching ?? false;
 
   let handled = new WeakSet();
-  let handleSelected = (mutations, observer) => {
+  let handleSelected = async (mutations, observer) => {
     let addedNodes = [];
 
     container.querySelectorAll(selector).forEach(el => {
@@ -21,12 +22,28 @@ unsafeWindow.observeAdd = function observeAdd(selector, handle, opts) {
       }
     });
 
-    if (addedNodes.length > 0) {
-      try {
-        let stop = () => observer.disconnect();
-        handle(addedNodes, stop);
-      } catch (err) {
-        console.error(err);
+    let stopped = false;
+    let stop = () => {
+      stopped = true;
+      observer.disconnect();
+    };
+
+    if (batching) {
+      if (addedNodes.length > 0) {
+        try {
+          await handle(addedNodes, stop);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    } else {
+      for (let el of addedNodes) {
+        try {
+          if (stopped) break;
+          await handle(el, stop);
+        } catch (err) {
+          console.error(err);
+        }
       }
     }
   };
@@ -41,4 +58,12 @@ unsafeWindow.observeAdd = function observeAdd(selector, handle, opts) {
     // run once at start
     handleSelected(null, observer);
   }
+};
+
+unsafeWindow.observeAddOnce = function observeAddOnce(selector, handle, opts) {
+  let handleOnce = async (els, stop) => {
+    stop();
+    await handle(els);
+  };
+  observeAdd(selector, handleOnce, opts);
 };
