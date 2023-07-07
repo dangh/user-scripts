@@ -146,6 +146,10 @@ unsafeWindow.eagerload = function eagerload(imageEl, opts) {
         let cells = { pending: '🤍️', viewing: '💖', started: '💛', loading: '❤️', loaded: '💚', failed: '💔' };
         let progress = images.map((img) => cells[img.state]).join('');
         log.info(progress, 'loading:', stats.loading);
+
+        let counts = { pending: 0, viewing: 0, started: 0, loading: 0, loaded: 0, failed: 0 };
+        images.forEach(img => { counts[img.state] += 1; });
+        document.dispatchEvent(new CustomEvent('eagerloadprogress', { detail: { total: images.length, ...counts } }));
       },
     });
 
