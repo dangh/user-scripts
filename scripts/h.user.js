@@ -2,7 +2,7 @@
 // @name         util::h
 // @downloadURL  https://github.com/dangh/user-scripts/raw/master/scripts/h.user.js
 // @match        <all_urls>
-// @version      0.0.3
+// @version      0.0.4
 // @run-at       document-start
 // ==/UserScript==
 
@@ -51,7 +51,7 @@ unsafeWindow.h = new Proxy(
   {
     get(h, tagName) {
       if (tagName == 'createSignal') {
-        return function createSignal(initialValue) {
+        return function createSignal(initialValue, listener) {
           let _value = initialValue;
           let _subscribers = [];
           let signal = (...args) => {
@@ -77,6 +77,7 @@ unsafeWindow.h = new Proxy(
             };
           };
           signal.IM_A_SIGNAL = true;
+          if (typeof listener == 'function') signal.subscribe(listener);
           return signal;
         };
       }
