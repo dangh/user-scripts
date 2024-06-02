@@ -2,15 +2,25 @@
 // @name         util::observeChange
 // @downloadURL  https://github.com/dangh/user-scripts/raw/master/scripts/observeChange.user.js
 // @match        <all_urls>
-// @version      0.0.1
+// @version      0.0.2
 // @run-at       document-start
 // ==/UserScript==
 
+let OBSERVER_CHANGE_LOG_LEVEL;
+
 unsafeWindow.observeChange = function observeChange(elements, handle, opts) {
+  let log = new Proxy(console, {
+    get(target, p, receiver) {
+      if (!OBSERVER_CHANGE_LOG_LEVEL) return () => {};
+      return target[p];
+    }
+  });
+
   function nodeList(elements) {
-    if (elements instanceof Node) return [elements];
-    if (elements instanceof NodeList) return Array.from(elements);
     if (Array.isArray(elements)) return elements;
+    if (elements instanceof NodeList) return Array.from(elements);
+    if (elements?.nodeType != null) return [elements];
+    return [];
   }
 
   function createObserver(handle, opts) {
@@ -18,7 +28,8 @@ unsafeWindow.observeChange = function observeChange(elements, handle, opts) {
     let container = opts?.container ?? document;
     if (container.tagName == 'IFRAME') container = container.contentDocument;
     let trackedValues = new WeakMap();
-    let trackedAttributes = Object.keys(handle).flatMap(attr => attr.split(',')).filter(attr => (attr && (attr != 'textContent')));
+    let trackedProperties = Object.keys(handle).flatMap(attr => attr.split(','));
+    let trackedAttributes = trackedProperties.filter(attr => (attr && (attr != 'textContent')));
     let observeOptions = {
       // default options
       subtree: false,
@@ -37,7 +48,7 @@ unsafeWindow.observeChange = function observeChange(elements, handle, opts) {
     };
 
     let reconcileChanges = (el, attrs) => {
-      console.group('Reconciling changes for element:', el, 'attributes:', attrs);
+      log.group('Reconciling changes for element:', el, 'attributes:', attrs);
       let changedSet = new Map();
       if (!trackedValues.has(el)) trackedValues.set(el, new Map());
       for (let attr of attrs) {
@@ -52,21 +63,21 @@ unsafeWindow.observeChange = function observeChange(elements, handle, opts) {
             break;
         }
         if (oldValue != newValue) {
-          console.group('Change detected:', [attr]);
+          log.group('Change detected:', [attr]);
           let changeSet = Object.keys(handle).find(changeSet => changeSet.split(',').includes(attr));
           if (!changedSet.has(changeSet)) changedSet.set(changeSet, {});
           changedSet.get(changeSet)[attr] = { oldValue, newValue };
         } else {
-          console.group('No change detected:', [attr]);
+          log.group('No change detected:', [attr]);
         }
-        console.dir({ oldValue, newValue });
-        console.groupEnd();
+        log.dir({ oldValue, newValue });
+        log.groupEnd();
       }
       if (changedSet.size > 0) {
         for (let [changeSet, changes] of changedSet) {
-          console.group('Handling changes:', [changeSet]);
-          console.dir(changes);
-          console.groupEnd();
+          log.group('Handling changes:', [changeSet]);
+          log.dir(changes);
+          log.groupEnd();
           if (changeSet.includes(',')) {
             handle[changeSet].call(el, changes);
           } else {
@@ -74,7 +85,7 @@ unsafeWindow.observeChange = function observeChange(elements, handle, opts) {
           }
         }
       }
-      console.groupEnd();
+      log.groupEnd();
     };
 
     let changeObserver = new MutationObserver(mutations => {
@@ -99,7 +110,7 @@ unsafeWindow.observeChange = function observeChange(elements, handle, opts) {
       for (let element of nodeList(elements)) {
         if (!trackedValues.has(element)) {
           changeObserver.observe(element, observeOptions);
-          if (runImmediately) reconcileChanges(element, trackedAttributes);
+          if (runImmediately) reconcileChanges(element, trackedProperties);
         }
       }
       return function unobserve() {
@@ -115,13 +126,13 @@ unsafeWindow.observeChange = function observeChange(elements, handle, opts) {
       let reconcileExistence = () => {
         container.querySelectorAll(selector).forEach(element => {
           if (!trackedValues.has(element)) {
-            console.debug('Tracking new element:', element);
+            log.debug('Tracking new element:', element);
             addedElements.add(element);
             observeChange(element);
           } else {
             // reconcile tracked elements
-            console.debug('Reconciling existing element:', element);
-            reconcileChanges(element, trackedAttributes);
+            log.debug('Reconciling existing element:', element);
+            reconcileChanges(element, trackedProperties);
           }
         });
       };
