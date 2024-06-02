@@ -16,6 +16,7 @@ unsafeWindow.observeChange = function observeChange(elements, handle, opts) {
   function createObserver(handle, opts) {
     let runImmediately = opts?.runImmediately ?? true;
     let container = opts?.container ?? document;
+    if (container.tagName == 'IFRAME') container = container.contentDocument;
     let trackedValues = new WeakMap();
     let trackedAttributes = Object.keys(handle).flatMap(attr => attr.split(',')).filter(attr => (attr && (attr != 'textContent')));
     let observeOptions = {

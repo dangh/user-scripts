@@ -8,6 +8,7 @@
 
 unsafeWindow.observeAdd = function observeAdd(selector, handle, opts) {
   let container = opts?.container ?? document;
+  if (container.tagName == 'IFRAME') container = container.contentDocument;
   let runImmediately = opts?.runImmediately ?? true;
   let batching = opts?.batching ?? false;
 
