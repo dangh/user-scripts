@@ -2,7 +2,7 @@
 // @name         util::observeAdd
 // @downloadURL  https://github.com/dangh/user-scripts/raw/master/scripts/observeAdd.user.js
 // @match        <all_urls>
-// @version      0.0.1
+// @version      0.0.2
 // @run-at       document-start
 // ==/UserScript==
 
@@ -10,6 +10,12 @@ unsafeWindow.observeAdd = function observeAdd(selector, handle, opts) {
   let container = opts?.container ?? document;
   let runImmediately = opts?.runImmediately ?? true;
   let batching = opts?.batching ?? false;
+
+  let stopped = false;
+  let stop = () => {
+    stopped = true;
+    observer.disconnect();
+  };
 
   let handled = new WeakSet();
   let handleSelected = async (mutations, observer) => {
@@ -21,12 +27,6 @@ unsafeWindow.observeAdd = function observeAdd(selector, handle, opts) {
         addedNodes.push(el);
       }
     });
-
-    let stopped = false;
-    let stop = () => {
-      stopped = true;
-      observer.disconnect();
-    };
 
     if (batching) {
       if (addedNodes.length > 0) {
@@ -58,6 +58,8 @@ unsafeWindow.observeAdd = function observeAdd(selector, handle, opts) {
     // run once at start
     handleSelected(null, observer);
   }
+
+  return stop;
 };
 
 unsafeWindow.observeAddOnce = function observeAddOnce(selector, handle, opts) {
@@ -65,5 +67,5 @@ unsafeWindow.observeAddOnce = function observeAddOnce(selector, handle, opts) {
     stop();
     await handle(els);
   };
-  observeAdd(selector, handleOnce, opts);
+  return observeAdd(selector, handleOnce, opts);
 };
