@@ -6,6 +6,8 @@
 // @run-at       document-start
 // ==/UserScript==
 
+let timer;
+
 unsafeWindow.favicon = function favicon(svg, opts) {
   if (svg) {
     switch (svg) {
@@ -23,6 +25,13 @@ unsafeWindow.favicon = function favicon(svg, opts) {
     svg = svg.replace(/\s+</g, '<');
     svg = svg.replace(/[#]/g, encodeURIComponent);
     link.href = 'data:image/svg+xml,' + svg;
+
+    if (opts?.resetAfter > 0) {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        unsafeWindow.favicon(null);
+      }, opts.resetAfter);
+    }
   } else {
     document.querySelector('link[favicon]')?.remove();
     document.head.querySelectorAll('link:is([rel~="icon"])').forEach(link => {
