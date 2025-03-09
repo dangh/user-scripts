@@ -18,13 +18,15 @@ unsafeWindow.favicon = function favicon(svg, opts) {
     if (!link) {
       link = document.createElement('link');
       link.rel = 'icon';
-      document.head.append(link);
+      link.setAttribute('favicon', true);
     }
     svg = svg.replace(/[\r\n]g/, '');
     svg = svg.replace(/>\s+/g, '>');
     svg = svg.replace(/\s+</g, '<');
     svg = svg.replace(/[#]/g, encodeURIComponent);
     link.href = 'data:image/svg+xml,' + svg;
+    link.remove();
+    document.head.append(link);
 
     if (opts?.resetAfter > 0) {
       clearTimeout(timer);
