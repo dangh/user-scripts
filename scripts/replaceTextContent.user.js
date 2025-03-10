@@ -17,7 +17,7 @@ unsafeWindow.replaceTextContent = function replaceTextContent(container, pattern
   }
   //replace text nodes content
   for (let el of allTextNodes) {
-    let html = el.textContent.replaceAll(pattern, match => {
+    let html = el.textContent.replaceAll(pattern, (match, ...args) => {
       let id = match.replace(/[^\w_-]/g, '');
       if (!id) return match;
 
@@ -26,7 +26,7 @@ unsafeWindow.replaceTextContent = function replaceTextContent(container, pattern
       if (replaced) return match;
 
       let content = replacer;
-      if (typeof replacer == 'function') content = replacer(match, el);
+      if (typeof replacer == 'function') content = replacer(match, ...args);
       return `<span ${attr}>${content}</span>`;
     });
     if (html != el.textContent) {
