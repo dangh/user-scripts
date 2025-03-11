@@ -52,7 +52,7 @@ function progress(opts) {
   let value = opts.value ?? 0;
   let width = opts.width ?? 6;
   let bgColor = opts.bgColor ?? 'black';
-  let color = opts.color ?? '#60e6a8';
+  let color = opts.color ?? '#3B5998';
   let shape = opts.shape ?? 'butt';
   let text = opts.text?.toString() ?? '';
   if (text == 'percent') text = Math.trunc(value * 100);
@@ -67,8 +67,13 @@ function progress(opts) {
   let circumference = 2 * Math.PI * radius;
   let offset = circumference * (1 - value);
   let track = '';
-  if(bgColor) track = `<circle r="${radius}" cx="${center}" cy="${center}" fill="transparent" stroke="${bgColor}" stroke-width="${width}"></circle>`;
-  if(text) text = `<text x="50%" y="50%" font-family="sans-serif" font-size="15" fill="white" stroke="black" stroke-width="2" paint-order="stroke" dominant-baseline="central" text-anchor="middle">${text}</text>`;
+  if (bgColor) track = `<circle r="${radius}" cx="${center}" cy="${center}" fill="transparent" stroke="${bgColor}" stroke-width="${width}"></circle>`;
+  if (text) {
+    let fontSize = 15;
+    if (text.length == 2) fontSize = 20;
+    if (text.length == 1) fontSize = 25;
+    text = `<text x="50%" y="50%" font-family="sans-serif" font-size="${fontSize}" fill="white" stroke="black" stroke-width="2" paint-order="stroke" dominant-baseline="central" text-anchor="middle">${text}</text>`;
+  }
   let svg = `
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
       ${track}
