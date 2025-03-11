@@ -54,7 +54,7 @@ function progress(opts) {
   let bgColor = opts.bgColor ?? 'black';
   let color = opts.color ?? '#60e6a8';
   let shape = opts.shape ?? 'butt';
-  let text = opts.text ?? '';
+  let text = opts.text?.toString() ?? '';
   if (text == 'percent') text = Math.trunc(value * 100);
   let type = opts.type ?? 'pie';
   if (text) type = 'pie';
