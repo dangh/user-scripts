@@ -68,7 +68,7 @@ function progress(opts) {
   let offset = circumference * (1 - value);
   let track = '';
   if(bgColor) track = `<circle r="${radius}" cx="${center}" cy="${center}" fill="transparent" stroke="${bgColor}" stroke-width="${width}"></circle>`;
-  if(text) text = `<text x="50%" y="50%" font-size="15" fill="white" stroke="black" stroke-width="2" paint-order="stroke" dominant-baseline="central" text-anchor="middle">${text}</text>`;
+  if(text) text = `<text x="50%" y="50%" font-family="sans-serif" font-size="15" fill="white" stroke="black" stroke-width="2" paint-order="stroke" dominant-baseline="central" text-anchor="middle">${text}</text>`;
   let svg = `
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
       ${track}
