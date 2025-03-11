@@ -51,24 +51,30 @@ unsafeWindow.favemoji = function favemoji(icon, badge) {
 function progress(opts) {
   let percent = opts.percent ?? 0;
   let width = opts.width ?? 6;
-  let trackColor = opts.trackColor ?? '#e0e0e0';
+  let trackColor = opts.trackColor;
   let progressColor = opts.progressColor ?? '#60e6a8';
   let shape = opts.shape ?? 'butt';
+  let text = opts.text ?? 'percent';
+  if (text == 'percent') text = Math.trunc(percent * 100);
 
   let size = 32, center = size / 2, radius = (size - width) / 2;
   let circumference = 2 * Math.PI * radius;
   let offset = circumference * (1 - percent);
+  let track = '';
+  if(trackColor) track = `<circle r="${radius}" cx="${center}" cy="${center}" fill="transparent" stroke="${trackColor}" stroke-width="${width}"></circle>`;
+  if(text) text = `<text x="50%" y="50%" font-size="9" fill="#6bdba7" dominant-baseline="middle" text-anchor="middle">${opts.text}</text>`;
   let svg = `
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      <circle r="${radius}" cx="${center}" cy="${center}" fill="transparent" stroke="${trackColor}" stroke-width="${width}"></circle>
+      ${track}
       <circle id="progress" r="${radius}" cx="${center}" cy="${center}" fill="transparent" stroke="${progressColor}" stroke-linecap="${shape}" stroke-width="${width}" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" transform="rotate(-90)" transform-origin="center"></circle>
+      ${text}
     </svg>
   `;
   return svg;
 }
 
 function emoji(opts) {
-  let { icon, badge } = opts;
+  let { icon = '', badge = '' } = opts;
   if (icon) icon = `<text y=".9em" font-size="90">${icon}</text>`;
   if (badge) badge = `<text x="1em" y="2.1em" font-size="45">${badge}</text>`;
   let svg = `
